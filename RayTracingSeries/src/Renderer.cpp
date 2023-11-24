@@ -50,6 +50,7 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
 	m_FinalImage->SetData(m_ImageData);
 }
 
+
 glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 {
 	Ray ray;
@@ -71,7 +72,9 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 		glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
 		float lightIntensity = glm::max(glm::dot(payload.WorldNormal, -lightDir), 0.0f); // == cos(angle) 0 <= cos <= 1
 
-		//if we hit a sphere, the color takes the color of the hitted place (if it is the last raybounce)
+		//if we hit a sphere, the color is the previous color added to the color of the hitted place
+		// the multiplier allows the retain more of the first color of the first raybounce than of the last 
+		// (otherwise, the sphere takes the color of the sky, which is usually the last raybounce)
 		const Sphere& sphere = m_ActiveScene->Spheres[payload.ObjectIndex];
 		const Material& material = m_ActiveScene->Materials[payload.ObjectIndex];
 		glm::vec3 sphereColor = material.Albedo;
@@ -87,6 +90,7 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 	return glm::vec4(color, 1.0f);
 }
 
+//Builds the payload
 Renderer::HitPayload Renderer::ClosestHit(const Ray& ray, float hitDistance, int objectIndex)
 {
 	Renderer::HitPayload payload;
@@ -104,6 +108,7 @@ Renderer::HitPayload Renderer::ClosestHit(const Ray& ray, float hitDistance, int
 	return payload;
 }
 
+//find the closest sphere hit by the ray
 Renderer::HitPayload Renderer::TraceRay(const Ray& ray){
 
 	// (bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
@@ -135,7 +140,7 @@ Renderer::HitPayload Renderer::TraceRay(const Ray& ray){
 		float closestT = (-b - glm::sqrt(discriminant)) / (2.0f * a);
 		//float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a); //Second hit distance (currently unused)
 
-		if (closestT > 0.0f && closestT< hitDistance) {
+		if (closestT > 0.0f && closestT < hitDistance) {
 			hitDistance = closestT;
 			closestSphere = (int)i;
 		}
