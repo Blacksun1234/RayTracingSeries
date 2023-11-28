@@ -67,6 +67,7 @@ public:
 		}
 		
 		ImGui::Checkbox("Accumulate", &m_Renderer.GetSettings().Accumulate);
+		ImGui::Checkbox("Slow random", &m_Renderer.GetSettings().SlowRandom);
 
 		if (ImGui::Button("Reset"))
 			m_Renderer.RestetFrameIndex();
